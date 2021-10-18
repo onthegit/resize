@@ -3,11 +3,52 @@ package resize
 import (
 	"image"
 	"image/color"
+	_ "image/gif"
+	"image/jpeg"
+	_ "image/png"
+	"os"
 	"runtime"
 	"testing"
 )
 
 var img = image.NewGray16(image.Rect(0, 0, 3, 3))
+
+func TestResize(t *testing.T) {
+
+	file := "./1.jpg"
+
+	resizedfile := "./1-RESIZED.jpg"
+
+	f, err := os.Open(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	fnew, err := os.Create(resizedfile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer fnew.Close()
+
+	newimg, tstr, err := image.Decode(f)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	nm := Resize(1280, 0, newimg, MitchellNetravali)
+
+	if tstr == "jpeg" {
+		err = jpeg.Encode(fnew, nm, &jpeg.Options{
+			Quality: 90,
+		})
+	}
+
+	if err != nil {
+		t.Fatal(err)
+	}
+}
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
