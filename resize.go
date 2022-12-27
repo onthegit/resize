@@ -624,7 +624,7 @@ func makeSlice(img imageWithSubImage, i, n int) image.Image {
 	return img.SubImage(image.Rect(img.Bounds().Min.X, img.Bounds().Min.Y+i*img.Bounds().Dy()/n, img.Bounds().Max.X, img.Bounds().Min.Y+(i+1)*img.Bounds().Dy()/n))
 }
 
-// ResizeFile - resizes the inputFile to outputFile with type outPutType and width and height if the width and/or height is less than
+// ResizeFile - resizes the inputFile to outputFile with type outPutType and width and height if the maxWidth and/or maxHeight is less than the image's
 func ResizeFile(inputFile string, outputFile string, maxWidth, maxHeight int, interp InterpolationFunction, outputType string) error {
 	f, err := os.Open(inputFile)
 
