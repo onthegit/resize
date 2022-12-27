@@ -55,6 +55,13 @@ func init() {
 	img.Set(1, 1, color.White)
 }
 
+func Test_Resizefile(t *testing.T) {
+	err := ResizeFile("/tmp/file.png", "/tmp/file.jpg", 500, 500, MitchellNetravali, "jpg")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func Test_Param1(t *testing.T) {
 	m := Resize(0, 0, img, NearestNeighbor)
 	if m.Bounds() != img.Bounds() {

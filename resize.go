@@ -21,11 +21,16 @@ THIS SOFTWARE.
 // utilized in the computations.
 //
 // Example:
-//     imgResized := resize.Resize(1000, 0, imgOld, resize.MitchellNetravali)
+//
+//	imgResized := resize.Resize(1000, 0, imgOld, resize.MitchellNetravali)
 package resize
 
 import (
+	"errors"
 	"image"
+	"image/jpeg"
+	"image/png"
+	"os"
 	"runtime"
 	"sync"
 )
@@ -617,4 +622,78 @@ type imageWithSubImage interface {
 
 func makeSlice(img imageWithSubImage, i, n int) image.Image {
 	return img.SubImage(image.Rect(img.Bounds().Min.X, img.Bounds().Min.Y+i*img.Bounds().Dy()/n, img.Bounds().Max.X, img.Bounds().Min.Y+(i+1)*img.Bounds().Dy()/n))
+}
+
+// ResizeFile - resizes the inputFile to outputFile with type outPutType and width and height if the width and/or height is less than
+func ResizeFile(inputFile string, outputFile string, maxWidth, maxHeight int, interp InterpolationFunction, outputType string) error {
+	f, err := os.Open(inputFile)
+
+	if err != nil {
+		return errors.New("os.Open returned error: " + err.Error())
+	}
+
+	decodedimg, tstr, err := image.Decode(f)
+
+	e := f.Close()
+
+	if err != nil {
+		return errors.New("image.Decode returned error: " + err.Error())
+	}
+
+	if e != nil {
+		return errors.New("f.Close returned error: " + e.Error())
+	}
+
+	ha := 0
+	wa := 0
+
+	if decodedimg.Bounds().Dx() > maxWidth {
+		wa = maxWidth
+	}
+
+	if decodedimg.Bounds().Dy() > maxHeight {
+		if wa < 1 {
+			ha = maxHeight
+		}
+	}
+
+	if ha > 0 || wa > 0 {
+		//overwrite the image
+		fnew, err := os.Create(outputFile)
+		if err != nil {
+			return errors.New("os.Open returned error: " + err.Error())
+		}
+
+		defer fnew.Close()
+
+		nm := Resize(uint(wa), uint(ha), decodedimg, MitchellNetravali)
+
+		if nm == nil {
+			return nil
+		}
+
+		if outputType == "" {
+			outputType = tstr
+		}
+
+		switch outputType {
+		case "jpeg", "jpg":
+			err = jpeg.Encode(fnew, nm, &jpeg.Options{
+				Quality: 90,
+			})
+		case "png":
+			err = png.Encode(fnew, nm)
+		}
+
+		if err != nil {
+			return err
+		}
+
+		return fnew.Sync()
+
+		// if err != nil {
+		// 	return errors.New("fnew.Sync() returned error: " + err.Error())
+		// }
+	}
+	return nil
 }
