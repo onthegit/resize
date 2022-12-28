@@ -56,7 +56,7 @@ func init() {
 }
 
 func Test_Resizefile(t *testing.T) {
-	err := ResizeFile("/tmp/file.png", "/tmp/file.jpg", 500, 500, MitchellNetravali, "jpg")
+	err := ResizeFile("/home/linux/Desktop/7.png", "/home/linux/Desktop/7.jpg", 500, 500, MitchellNetravali, "jpg")
 	if err != nil {
 		t.Fatal(err)
 	}

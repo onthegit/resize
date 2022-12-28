@@ -32,6 +32,7 @@ import (
 	"image/png"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 )
 
@@ -626,6 +627,9 @@ func makeSlice(img imageWithSubImage, i, n int) image.Image {
 
 // ResizeFile - resizes the inputFile to outputFile with type outPutType and width and height if the maxWidth and/or maxHeight is less than the image's
 func ResizeFile(inputFile string, outputFile string, maxWidth, maxHeight int, interp InterpolationFunction, outputType string) error {
+
+	outputType = strings.ToLower(outputType)
+
 	f, err := os.Open(inputFile)
 
 	if err != nil {
@@ -657,8 +661,8 @@ func ResizeFile(inputFile string, outputFile string, maxWidth, maxHeight int, in
 		}
 	}
 
-	if ha > 0 || wa > 0 {
-		//overwrite the image
+	if (ha > 0 || wa > 0) || tstr != outputType {
+
 		fnew, err := os.Create(outputFile)
 		if err != nil {
 			return errors.New("os.Open returned error: " + err.Error())
@@ -666,10 +670,18 @@ func ResizeFile(inputFile string, outputFile string, maxWidth, maxHeight int, in
 
 		defer fnew.Close()
 
-		nm := Resize(uint(wa), uint(ha), decodedimg, MitchellNetravali)
+		var nm image.Image
+
+		if ha > 0 || wa > 0 {
+			nm = Resize(uint(wa), uint(ha), decodedimg, MitchellNetravali)
+
+			if nm == nil {
+				return nil
+			}
+		}
 
 		if nm == nil {
-			return nil
+			nm = decodedimg
 		}
 
 		if outputType == "" {
